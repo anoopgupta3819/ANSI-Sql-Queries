@@ -1,1 +1,277 @@
+DDL (DATA DEFINITION LANG)
+ DML(DATA MANIPULATION LANG)
+ DQL (DATA QUERY LANG)
+ TCL (TRANSACTION CONTROL LANG)
+ DCL (DATA CONTROL LANG)
 
+
+                                             SQL
+  DDL                 DML                DQL                TCL            DCL
+
+ CREATE              INSERT             SELECT             COMMIT         GRANT            
+ ALTER               UPDATE             SAVEPOINT          ROLLBACK       REVOKE
+ DROP                DELETE
+ TRUNCATE            MERGE
+ RENAME              INSERT ALL
+ FLASHBACK
+ PURGE
+===================================================================================================================================================
+ execution :----------------
+ FROM
+ WHERE
+ GROUPBY
+ HAVING
+ SELECT
+ ORDERBY
+ examples :
+=> display dept wise total salaries ?
+ SELECT deptno,SUM(sal)
+ FROM emp
+ GROUP BY  deptno ;
+ FROM emp:--------------------
+ EMPNO ENAME
+ 1
+ A
+ SAL DEPTNO
+ 5000 10
+ 2
+ 3
+ 4
+ 5
+ B
+ C
+ D
+ E
+ 4000 20
+ 6000 30
+ 3000 20
+ 4000 10
+ GROUPBYdeptno :------------------------------
+10
+ 20
+ 1
+ 5
+ 2
+ A
+ E
+ B
+ 5000
+ 4000
+ 4000
+4
+ D
+ 3000
+ 30
+ 3
+ C
+ 6000
+ SELECT deptno,SUM(sal) :----------------------------------------
+ 10
+ 20
+ 30
+ 9000
+ 7000
+ 6000
+ => display job wise min sal,max sal,sum sal,no of emps ?
+ SELECT job,MIN(sal),
+ MAX(sal),
+ SUM(sal),
+ COUNT(*)
+ FROMemp
+ GROUPBYjob ;
+ => display year wise no of employees joined ?
+ SELECT TO_CHAR(HIREDATE,'YYYY') AS YEAR,
+ COUNT(*)
+ FROMEMP
+ GROUPBYTO_CHAR(HIREDATE,'YYYY') ;
+ => display day wise no of employees joined ?
+ SELECT TO_CHAR(HIREDATE,'DAY') AS DAY,
+ COUNT(*)
+ FROMEMP
+ GROUPBYTO_CHAR(HIREDATE,'DAY') ;
+ => display no of employees joined month wise in the year 1981 ?
+ SELECT TO_CHAR(HIREDATE,'month') AS month,
+ COUNT(*)
+ FROMEMP
+ WHERE TO_CHAR(HIREDATE,'YYYY')=1981
+ GROUPBYTO_CHAR(HIREDATE,'month') ;
+=> find the departments having more than 3 employees ?
+ SELECT deptno,COUNT(*)
+ FROMemp
+ WHERECOUNT(*) > 3
+ GROUPBYdeptno ;
+ => ERROR
+ above query returns error because oracle cannot calculate dept wise count
+ before group by and it can calculate only after group by , so apply the
+ condition COUNT(*) > 3 after group by using HAVING clause.
+ SELECT deptno,COUNT(*)
+ FROMemp
+ GROUPBYdeptno
+ HAVING COUNT(*) > 3 ;
+ 22-SEP-23
+ WHEREVSHAVING:----------------------------------
+ WHERE
+ 1 usedtoselect specific rows
+ 2 conditions applied before
+ group by
+ 3 usewhere clause if
+ cond doesn't contain
+ group function
+ HAVING
+ used to select specific groups
+ conditions applied after group by
+ use having clause
+ if cond contains
+ group function
+ => display job wise no of employees where job = clerk,manager and no of emps > 3 ?
+ SELECT job,COUNT(*)
+ FROMemp
+ WHERE jobIN ('CLERK','MANAGER')
+ GROUPBYjob
+ HAVING COUNT(*) > 3;
+ => find the southern states having more than 5cr population ?
+PERSONS
+ AADHARNO NAME GENDER AGE ADDR CITY STATE
+ SELECT STATE,COUNT(*)
+ FROMPERSONS
+ WHERESTATEIN('AP','TS','TN','KA','KL')
+ GROUPBYSTATE
+ HAVING COUNT(*) > 50000000 ;
+ => display dept wise and with in dept job wise total sal ?
+ SQL>BREAK ONDEPTNOSKIP1
+ SQL>SELECT DEPTNO,JOB,SUM(SAL)
+ FROMEMP
+ GROUPBYDEPTNO,JOB
+ ORDERBYDEPTNOASC;
+ 10
+ 20
+ 30
+ CLERK
+ MANAGER 2450
+ PRESIDENT 5000
+ ANALYST
+ CLERK
+ MANAGER 2975
+ CLERK
+ MANAGER 2850
+ SALESMAN 5600
+ 1300
+ 6000
+ 1900
+ 950
+ => display state wise and with in state gender wise population ?
+ PERSONS
+ AADHARNO NAME GENDER AGE ADDR CITY STATE
+ => display last 5 years year wise and with in year quarter wise total amount ?
+ SALES
+ DATEID
+ PRODID
+ 21-SEP-23 100
+ 10
+ CUSTID
+ 1
+ QTY AMT
+ 2000
+20191 ?
+ 2 ?
+ 3 ?
+ 4 ?
+ 20201 ?
+ 2 ?
+ 3 ?
+ 4 ?
+ ROLLUP&CUBE:------------------------------
+ =>bothfunctionsareusedtodisplaysubtotalsandgrandtotal
+ syn:-GROUPBYROLLUP(COL1,COL2,----)
+ GROUPBYCUBE(COL1,COL2,-----)
+ ROLLUP:------------------
+=>ROLLUPdisplayssubtotalsforeachgroupandalsodisplaysgrandtotal
+ SELECTDEPTNO,JOB,SUM(SAL)
+ FROMEMP
+ GROUPBYROLLUP(DEPTNO,JOB)
+ ORDERBYDEPTNOASC;
+ 10 CLERK 1300
+ MANAGER 2450
+ PRESIDENT 5000
+ 8750 =>deptsubtotal
+ 20 ANALYST 6000
+ CLERK 1900
+ MANAGER 2975
+ 10875 =>deptsubtotal
+ 29025 =>grandtota
+EMP44
+ ENO ENAME SAL
+ 1 A 5000
+ 2 B 6000
+ 3 C 7000
+ 1 A 5000
+ 2 B 6000
+ =>displayduplicaterecords?
+ SELECTENO,ENAME,SAL
+ FROMEMP44
+ GROUPBYENO,ENAME,SAL
+ HAVINGCOUNT(*)>1;
+ Question2:------------------
+ SELECTDEPTNO,ENAME,COUNT(*)
+ FROMEMP
+ GROUPBYDEPTNO; =>ERROR
+ =>inselectonlygroupbycolumnandgroupfunctionsareallowed ,otherthantheseifany
+ columnappearsthenselectstmtreturnserror
+ Question3:----------------------
+ SELECTTO_CHAR(HIREDATE,'YYYY')ASYEAR,COUNT(*)
+FROMEMP
+ GROUPBYYEAR /*INVALID*/
+ ORDERBYYEARASC /*VALID*/ ;
+ 1 alias cannot be used in group by clause because group by clause is executed before select
+ 2 alias can be used in order by clause because order by clause is executed after select
+ Range grouping :--------------------------
+SELECT CASE
+ WHENSALBETWEEN0AND2000THEN'0-2000'
+ WHENSALBETWEEN2001AND4000THEN'2001-4000'
+ WHENSAL>4000 THEN ' ABOVE 4000'
+ ENDASSALRANGE,COUNT(*) AS CNT
+ FROMEMP
+ GROUPBY CASE
+ WHENSALBETWEEN0AND2000THEN'0-2000'
+ WHENSALBETWEEN2001AND4000THEN'2001-4000'
+ WHENSAL>4000 THEN ' ABOVE 4000'
+ END;
+ SUMMARY:
+1 importance of group by
+ 2 writing queries using group by
+ 3 where vs having
+ 4 rollup & cube
+ 5 grouping_id
+==================================================================================================================================
+INTEGRITY CONSTRAINTS----------------------------------------
+ => Integrity Constraints are rules to maintain data integrity i.e. data quality or data consistency
+ => used to prevent users from entering invalid data.
+ => used to enforce rules like min bal must be 1000
+=> different integrity constraints in oracle
+ 1 NOTNULL
+ 2 UNIQUE
+ 3 PRIMARYKEY
+ 4 CHECK
+ 5 FOREIGNKEY
+ 6 DEFAULT
+ => constraints can be declared in two ways
+ 1 column level
+ 2 table level
+ column level :--------------------
+=> if constraints are declared immediately after declaring column then it is called column level
+ CREATE TABLE <tabname>
+ (
+ colname datatype(size) constraint,
+ colname datatype(size) constraint,------------------------
+ );
+ NOTNULL:------------------
+=> NOTNULLconstraint doesn't accept null values
+ => a field declared with not null is called mandatory field
+ ex :
+CREATE TABLE emp11
+ (
+ empno NUMBER(4),
+ ename VARCHAR2(10) NOT NULL
+ );
+ INSERT INTO emp11 VALUES(100,'); => ERROR
+ INSERT INTO emp11 VALUES(101,'ABC');
